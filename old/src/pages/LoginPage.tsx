@@ -106,6 +106,16 @@ export function LoginPage() {
               </Link>
             </p>
           </div>
+
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <p className="text-sm text-gray-500 text-center">
+              Demo Accounts:
+            </p>
+            <div className="mt-2 space-y-1 text-xs text-gray-600">
+              <p><strong>Admin:</strong> ADMIN001 / admin123</p>
+              <p><strong>Student:</strong> STU001 / student123</p>
+            </div>
+          </div>
         </div>
 
         <div className="text-center mt-6">
