@@ -13,7 +13,7 @@
    - Choose installation directory (default: `C:\Program Files\PostgreSQL\15`)
    - Select components (keep all selected)
    - Set data directory (default: `C:\Program Files\PostgreSQL\15\data`)
-   - Set password for `postgres` superuser (remember this!)
+   - Set password for `postgres` superuser (remember this!) 12qw!@QWzak
    - Set port (default: 5432)
    - Set locale (default is fine)
    - Complete installation
