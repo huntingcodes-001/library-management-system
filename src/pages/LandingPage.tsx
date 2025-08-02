@@ -1,179 +1,196 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Book, Users, Award, Search, ChevronRight } from 'lucide-react';
-import { useAppContext } from '../context/AppContext';
-import { BookCard } from '../components/BookCard';
-import { BOOK_CATEGORIES } from '../types';
+import { BookOpen, Star, Users, Award, ArrowRight } from 'lucide-react';
+import { Card } from '../components/ui/Card';
+import { LoadingSpinner } from '../components/ui/LoadingSpinner';
+import { api } from '../services/api';
+import { Category, Book } from '../services/supabase';
 
 export function LandingPage() {
-  const { state } = useAppContext();
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [booksLoading, setBooksLoading] = useState(false);
 
-  const filteredBooks = state.books.filter(book => {
-    const matchesCategory = !selectedCategory || book.category === selectedCategory;
-    const matchesSearch = !searchTerm || 
-      book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      book.author.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  useEffect(() => {
+    loadCategories();
+  }, []);
 
-  const totalBooks = state.books.length;
-  const totalUsers = state.users.filter(u => u.role === 'student').length;
-  const averageRating = state.books.reduce((acc, book) => acc + book.rating, 0) / state.books.length;
+  useEffect(() => {
+    if (selectedCategory) {
+      loadBooks(selectedCategory.id);
+    }
+  }, [selectedCategory]);
+
+  const loadCategories = async () => {
+    try {
+      const data = await api.getCategories();
+      setCategories(data);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadBooks = async (categoryId: string) => {
+    setBooksLoading(true);
+    try {
+      const data = await api.getBooks(categoryId);
+      setBooks(data);
+    } catch (error) {
+      console.error('Error loading books:', error);
+    } finally {
+      setBooksLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-indigo-900 via-blue-900 to-purple-900 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black opacity-20"></div>
-        <div className="absolute inset-0">
-          <div className="absolute top-10 left-10 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-          <div className="absolute top-40 right-10 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-2000"></div>
-          <div className="absolute bottom-10 left-1/2 w-72 h-72 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-4000"></div>
+      <section className="relative py-20 px-4 text-center">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            Welcome to Our Community Library
+          </h1>
+          <p className="text-xl md:text-2xl text-white/80 mb-8 max-w-2xl mx-auto leading-relaxed">
+            Discover a world of knowledge, engage with fellow readers, and embark on incredible literary journeys.
+          </p>
+          <Link
+            to="/login"
+            className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+          >
+            Get Started <ArrowRight className="ml-2 h-5 w-5" />
+          </Link>
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-          <div className="text-center animate-fade-in">
-            <h1 className="heading-responsive font-extrabold mb-8 bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent">
-              Welcome to LibraryHub
-            </h1>
-            <p className="text-xl mb-10 text-blue-100 max-w-4xl mx-auto leading-relaxed">
-              Discover a world of knowledge at your fingertips. Join our vibrant community of readers, 
-              explore thousands of books, and embark on literary adventures that will expand your horizons.
-            </p>
-            <Link
-              to="/login"
-              className="inline-flex items-center space-x-3 bg-white text-indigo-600 px-10 py-5 rounded-2xl font-bold hover:bg-blue-50 transition-all duration-300 text-lg shadow-2xl hover:shadow-3xl transform hover:-translate-y-1"
-            >
-              <span>Get Started</span>
-              <ChevronRight className="h-5 w-5" />
-            </Link>
-          </div>
-        </div>
-      </div>
+      </section>
 
-      {/* Stats Section */}
-      <div className="bg-white py-20 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            <div className="text-center group animate-slide-in">
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transform group-hover:-translate-y-2 transition-all duration-300">
-                <Book className="h-10 w-10 text-white" />
-              </div>
-              <h3 className="text-4xl font-bold text-gray-900 mb-3">{totalBooks}+</h3>
-              <p className="text-gray-600 font-medium">Books Available</p>
-            </div>
-            <div className="text-center group animate-slide-in animation-delay-200">
-              <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transform group-hover:-translate-y-2 transition-all duration-300">
-                <Users className="h-10 w-10 text-white" />
-              </div>
-              <h3 className="text-4xl font-bold text-gray-900 mb-3">{totalUsers}+</h3>
-              <p className="text-gray-600 font-medium">Active Readers</p>
-            </div>
-            <div className="text-center group animate-slide-in animation-delay-400">
-              <div className="bg-gradient-to-br from-orange-500 to-orange-600 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:shadow-xl transform group-hover:-translate-y-2 transition-all duration-300">
-                <Award className="h-10 w-10 text-white" />
-              </div>
-              <h3 className="text-4xl font-bold text-gray-900 mb-3">{averageRating.toFixed(1)}</h3>
-              <p className="text-gray-600 font-medium">Average Rating</p>
-            </div>
+      {/* Features Section */}
+      <section className="py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl font-bold text-white text-center mb-12">Why Choose Our Library?</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <Card hover className="text-center">
+              <BookOpen className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-white mb-2">Vast Collection</h3>
+              <p className="text-white/70">Access thousands of books across multiple categories and genres.</p>
+            </Card>
+            <Card hover className="text-center">
+              <Users className="h-12 w-12 text-green-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-white mb-2">Community Engagement</h3>
+              <p className="text-white/70">Connect with fellow readers through reviews and discussions.</p>
+            </Card>
+            <Card hover className="text-center">
+              <Award className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-white mb-2">Reward System</h3>
+              <p className="text-white/70">Earn coins for active participation and quality contributions.</p>
+            </Card>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Categories and Books Section */}
-      <div className="py-20 bg-gradient-to-b from-white to-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 animate-fade-in">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">
-              Explore Our Collection
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Browse through our carefully curated collection of books across various categories
-            </p>
-          </div>
-
-          {/* Search Bar */}
-          <div className="relative max-w-lg mx-auto mb-12 animate-scale-in">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search books or authors..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-14 pr-6 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 bg-white shadow-lg text-lg"
-            />
-          </div>
-
-          {/* Category Filter */}
-          <div className="flex flex-wrap justify-center gap-4 mb-16">
-            <button
-              onClick={() => setSelectedCategory(null)}
-              className={`px-6 py-3 rounded-2xl text-sm font-semibold transition-all duration-200 transform hover:-translate-y-0.5 ${
-                !selectedCategory
-                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg'
-                  : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md border border-gray-200'
-              }`}
-            >
-              All Categories
-            </button>
-            {BOOK_CATEGORIES.map((category) => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-6 py-3 rounded-2xl text-sm font-semibold transition-all duration-200 transform hover:-translate-y-0.5 ${
-                  selectedCategory === category
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md border border-gray-200'
+      {/* Categories Section */}
+      <section className="py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl font-bold text-white text-center mb-12">Explore Our Categories</h2>
+          <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
+            {categories.map((category) => (
+              <Card
+                key={category.id}
+                hover
+                className={`text-center cursor-pointer transition-all duration-300 ${
+                  selectedCategory?.id === category.id ? 'ring-2 ring-blue-400 bg-white/20' : ''
                 }`}
+                onClick={() => setSelectedCategory(category)}
               >
-                {category}
-              </button>
+                <img
+                  src={category.image_url || 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg'}
+                  alt={category.name}
+                  className="w-full h-32 object-cover rounded-lg mb-4"
+                />
+                <h3 className="text-lg font-semibold text-white">{category.name}</h3>
+              </Card>
             ))}
           </div>
 
-          {/* Books Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {filteredBooks.map((book) => (
-              <BookCard key={book.id} book={book} />
-            ))}
-          </div>
-
-          {filteredBooks.length === 0 && (
-            <div className="text-center py-16">
-              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Book className="h-12 w-12 text-gray-400" />
-              </div>
-              <p className="text-gray-500 text-xl font-medium">No books found matching your criteria.</p>
+          {/* Books Display */}
+          {selectedCategory && (
+            <div className="mt-12">
+              <h3 className="text-2xl font-bold text-white mb-6">Books in {selectedCategory.name}</h3>
+              {booksLoading ? (
+                <div className="flex justify-center py-8">
+                  <LoadingSpinner size="lg" />
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {books.map((book) => (
+                    <Card key={book.id} hover className="text-center">
+                      <img
+                        src={book.cover_url || 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg'}
+                        alt={book.title}
+                        className="w-full h-48 object-cover rounded-lg mb-4"
+                      />
+                      <h4 className="text-lg font-semibold text-white mb-2">{book.title}</h4>
+                      <p className="text-white/70 mb-3">by {book.author}</p>
+                      <div className="flex items-center justify-center space-x-1 mb-2">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-4 w-4 ${
+                              i < Math.floor(book.average_rating)
+                                ? 'text-yellow-400 fill-current'
+                                : 'text-gray-400'
+                            }`}
+                          />
+                        ))}
+                        <span className="text-white/70 ml-2">
+                          {book.average_rating.toFixed(1)} ({book.total_ratings})
+                        </span>
+                      </div>
+                      <p className="text-sm text-white/60">
+                        {book.available_quantity} of {book.total_quantity} available
+                      </p>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
-      </div>
+      </section>
 
       {/* CTA Section */}
-      <div className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 text-white py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-black opacity-30"></div>
-        <div className="absolute inset-0">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
-        </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold mb-6">
-            Ready to Start Your Reading Journey?
-          </h2>
-          <p className="text-xl text-blue-100 mb-10 max-w-3xl mx-auto leading-relaxed">
-            Join thousands of students who are already exploring the world through books. 
-            Sign up today and get 100 coins to start your adventure!
+      <section className="py-16 px-4 text-center">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-4xl font-bold text-white mb-6">Ready to Start Your Journey?</h2>
+          <p className="text-xl text-white/80 mb-8">
+            Join our community of passionate readers and unlock a world of knowledge.
           </p>
-          <Link
-            to="/signup"
-            className="inline-flex items-center space-x-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-10 py-5 rounded-2xl font-bold transition-all duration-300 text-lg shadow-2xl hover:shadow-3xl transform hover:-translate-y-1"
-          >
-            <span>Join LibraryHub</span>
-            <ChevronRight className="h-5 w-5" />
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/login"
+              className="px-8 py-4 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Login
+            </Link>
+            <Link
+              to="/signup"
+              className="px-8 py-4 bg-white/20 text-white rounded-lg text-lg font-semibold hover:bg-white/30 transition-colors"
+            >
+              Sign Up
+            </Link>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
