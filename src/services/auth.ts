@@ -61,14 +61,13 @@ export const authService = {
   async signIn(studentId: string, password: string) {
     // Handle admin login
     if (studentId === 'LibAdmin' && password === '12qwaszx') {
-      // First check if admin user exists
       const { data, error } = await supabase.auth.signInWithPassword({
         email: 'admin@library.com',
         password: 'admin123456',
       });
 
       if (error) {
-        throw new Error('Admin account not found. Please contact system administrator.');
+        throw new Error('Admin credentials invalid. Please ensure admin account exists in Supabase.');
       }
 
       return data;
