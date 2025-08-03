@@ -61,14 +61,42 @@ export const authService = {
   async signIn(studentId: string, password: string) {
     // Handle admin login
     if (studentId === 'LibAdmin' && password === '12qwaszx') {
-      // First check if admin user exists
+      // Try to sign in with admin email
       const { data, error } = await supabase.auth.signInWithPassword({
         email: 'admin@library.com',
         password: 'admin123456',
       });
 
       if (error) {
-        throw new Error('Admin account not found. Please contact system administrator.');
+        // Create admin account if it doesn't exist
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: 'admin@library.com',
+          password: 'admin123456',
+        });
+
+        if (signUpError) throw signUpError;
+        if (!signUpData.user) throw new Error('Failed to create admin user');
+
+        // Create admin profile
+        await supabase
+          .from('profiles')
+          .insert({
+            user_id: signUpData.user.id,
+            full_name: 'Library Administrator',
+            student_id: 'LibAdmin',
+            email: 'admin@library.com',
+            role: 'admin',
+            coin_balance: 0,
+          });
+
+        // Sign in again
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: 'admin@library.com',
+          password: 'admin123456',
+        });
+
+        if (signInError) throw signInError;
+        return signInData;
       }
 
       return data;
