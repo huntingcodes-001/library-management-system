@@ -38,6 +38,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (studentId: string, password: string) => {
     try {
+      // In a real app, you'd hash the password and compare with stored hash
+      // For demo purposes, we'll use student_id as password
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -48,9 +50,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, error: 'Invalid credentials' }
       }
 
-      // For demo purposes, accept either student_id or 'password' as password
-      // In production, you'd use proper password hashing
-      if (password !== studentId && password !== 'password' && password !== 'admin') {
+      // Simple password check (in production, use proper hashing)
+      if (password !== studentId) {
         return { success: false, error: 'Invalid credentials' }
       }
 
