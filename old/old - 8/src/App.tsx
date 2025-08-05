@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
-import LandingPage from './components/LandingPage'
+import { LandingPage } from './components/LandingPage'
 import { Auth } from './components/Auth'
 import { StudentDashboard } from './components/student/StudentDashboard'
 import { AdminDashboard } from './components/admin/AdminDashboard'
