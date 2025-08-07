@@ -1,13 +1,14 @@
 import React, { useState } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import LandingPage from './components/LandingPage'
 import { Auth } from './components/Auth'
 import { StudentDashboard } from './components/student/StudentDashboard'
 import { AdminDashboard } from './components/admin/AdminDashboard'
+import { Layout } from './components/Layout'
 
 const AppContent: React.FC = () => {
   const [showAuth, setShowAuth] = useState(false)
+  const [currentView, setCurrentView] = useState<'home' | 'dashboard'>('home')
   const { user, loading } = useAuth()
 
   if (loading) {
@@ -23,9 +24,36 @@ const AppContent: React.FC = () => {
 
   // If user is logged in, redirect to appropriate dashboard
   if (user) {
+    const handleHomeClick = () => setCurrentView('home')
+    const handleDashboardClick = () => setCurrentView('dashboard')
+
     if (user.role === 'admin') {
+      if (currentView === 'home') {
+        return (
+          <Layout 
+            title="Home" 
+            showNavigation={true} 
+            onHomeClick={handleHomeClick}
+            onDashboardClick={handleDashboardClick}
+          >
+            <LandingPage onLoginClick={() => {}} />
+          </Layout>
+        )
+      }
       return <AdminDashboard />
     } else {
+      if (currentView === 'home') {
+        return (
+          <Layout 
+            title="Home" 
+            showNavigation={true} 
+            onHomeClick={handleHomeClick}
+            onDashboardClick={handleDashboardClick}
+          >
+            <LandingPage onLoginClick={() => {}} />
+          </Layout>
+        )
+      }
       return <StudentDashboard />
     }
   }

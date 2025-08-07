@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { Layout } from '../Layout'
 import { IssueRequests } from './IssueRequests'
 import { AdditionRequests } from './AdditionRequests'
 import { BorrowHistory } from './BorrowHistory'
@@ -8,6 +7,7 @@ import { ReviewApproval } from './ReviewApproval'
 import { Analytics } from './Analytics'
 import { ManualIssue } from './ManualIssue'
 import { ReturnRequests } from './ReturnRequests'
+import { useAuth } from '../../contexts/AuthContext'
 import { 
   Clock, 
   Plus, 
@@ -16,11 +16,19 @@ import {
   Star, 
   BarChart3, 
   UserPlus,
-  RotateCcw
+  RotateCcw,
+  BookOpen,
+  LogOut,
+  Coins
 } from 'lucide-react'
 
 export const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('requests')
+  const { user, logout } = useAuth()
+
+  const handleLogout = async () => {
+    await logout()
+  }
 
   const tabs = [
     { id: 'requests', label: 'Issue Requests', icon: Clock },
@@ -57,29 +65,34 @@ export const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Admin Header */}
-      <header className="bg-black/20 backdrop-blur-md shadow-2xl border-b border-purple-500/20 sticky top-0 z-50">
+      <header className="bg-white/80 backdrop-blur-md shadow-xl border-b border-blue-200/50 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Package className="h-6 w-6 text-white" />
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                <BookOpen className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                  Admin Control Center
+                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  Saraswati Community Library
                 </h1>
-                <p className="text-xs text-purple-300">Library Management System</p>
+                <p className="text-xs text-blue-600">Admin Portal</p>
               </div>
             </div>
             
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 px-4 py-2 rounded-full border border-purple-400/30 shadow-lg backdrop-blur-sm">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-purple-200">System Online</span>
+              <div className="flex items-center space-x-2 bg-gradient-to-r from-yellow-50 to-orange-50 px-4 py-2 rounded-full border border-yellow-200 shadow-sm">
+                <Coins className="h-4 w-4 text-yellow-600" />
+                <span className="text-sm font-bold text-yellow-800">{user?.coins || 0} coins</span>
               </div>
-              <button className="flex items-center space-x-1 text-purple-300 hover:text-red-400 transition-all duration-200 hover:scale-105 bg-red-500/10 hover:bg-red-500/20 px-3 py-2 rounded-lg">
+              <span className="text-sm text-gray-700 font-medium">Welcome, {user?.full_name}</span>
+              <button 
+                onClick={handleLogout}
+                className="flex items-center space-x-1 text-gray-600 hover:text-red-600 transition-all duration-200 hover:scale-105"
+              >
+                <LogOut className="h-4 w-4" />
                 <span className="text-sm">Logout</span>
               </button>
             </div>
@@ -89,38 +102,39 @@ export const AdminDashboard: React.FC = () => {
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="space-y-6">
-        {/* Navigation Tabs */}
-        <div className="bg-black/30 backdrop-blur-md rounded-2xl shadow-2xl border border-purple-500/20">
-          <div className="px-6 py-4 border-b border-purple-500/20">
-            <h2 className="text-lg font-semibold text-white">Library Management Console</h2>
-          </div>
-          <div className="px-6 py-4">
-            <div className="flex flex-wrap gap-2">
-              {tabs.map((tab) => {
-                const Icon = tab.icon
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                      activeTab === tab.id
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg transform scale-105'
-                        : 'text-purple-300 hover:bg-purple-500/20 hover:text-white hover:scale-105'
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span>{tab.label}</span>
-                  </button>
-                )
-              })}
-            </div>
+      {/* Navigation Tabs */}
+      <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-blue-200/50">
+        <div className="px-6 py-4 border-b border-blue-100">
+          <h2 className="text-lg font-semibold text-gray-900">Admin Control Panel</h2>
+          <p className="text-sm text-blue-600">Saraswati Community Library Management</p>
+        </div>
+        <div className="px-6 py-4">
+          <div className="flex flex-wrap gap-2">
+            {tabs.map((tab) => {
+              const Icon = tab.icon
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    activeTab === tab.id
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg transform scale-105'
+                      : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600 hover:scale-105'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{tab.label}</span>
+                </button>
+              )
+            })}
           </div>
         </div>
+      </div>
 
-        {/* Active Tab Content */}
-        <div className="min-h-[500px]">
-          {renderActiveTab()}
-        </div>
+      {/* Active Tab Content */}
+      <div className="min-h-[500px]">
+        {renderActiveTab()}
+      </div>
       </div>
       </main>
     </div>
